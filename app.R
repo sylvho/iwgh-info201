@@ -145,6 +145,17 @@ prison_rate_map <- left_join(prison_rate_non_national,
                              by = "region"
 )
 
+# Jevandre's data for tab 2
+
+capacities <- read.csv("data/capacity_data.csv", stringsAsFactors = FALSE)
+capacities <- capacities %>% 
+  mutate(rate.pct =  100 * capacities$Custody.population / capacities$Rate,
+         operational.pct =  100 * capacities$Custody.population / capacities$Operational,
+         design.pct =  100 * capacities$Custody.population / capacities$Design
+  )
+capacities$Jurisdiction <- tolower(capacities$Jurisdiction)
+map_data <- left_join(state_map, capacities, by = c("region" = "Jurisdiction"))
+
 ###
 
 
@@ -183,11 +194,16 @@ shinyApp(
       # Second tab
       tabPanel("Population and Overpopulation", 
                sidebarPanel(
-                 #widget/sidebar here
-               ),
+                 sliderInput('year_choice_j', label = "Year", min = 2011, max = 2016, value = 2011, step = 1),
+                 selectInput('option_choice', label = "Stats", 
+                             choices = list("Custody Population" = "Custody.population",
+                                            "Rate %" = "rate.pct", 
+                                            "Operational %" = "operational.pct", 
+                                            "Design %" = "design.pct")
+                 )),
                mainPanel(
                  tabsetPanel(
-                   tabPanel("Tab 1", "This panel is intentionally left blank")
+                   tabPanel("Tab 1", plotOutput('map'))
                  )
                )
       ),
@@ -219,7 +235,7 @@ shinyApp(
   ),
   
   server = function(input, output) {
-    # For second tab: underage inmate population
+    # For third tab: underage inmate population
     filtered_data <- reactive({
       data <- long_underage_data %>%
         filter(input$location_choice[1] == long_underage_data$Jurisdiction & 
@@ -359,7 +375,26 @@ shinyApp(
       return(prison_rate_national_point)
     })
     
-    ###
+    ### Jevandre's server info for tab 2
+    output$map <- renderPlot({
+      map_data_year <- filter(map_data, Year == input$year_choice_j)
+      map_plot <- ggplot(data = map_data_year) +
+        geom_polygon(aes(
+          x = long, y = lat,
+          group = group, fill = Custody.population
+        )) + 
+        scale_fill_continuous(low = "yellow", high = "red") +
+        theme_bw() +
+        theme(axis.ticks = element_blank(),
+              axis.text.x = element_blank(),
+              axis.text.y = element_blank(),
+              axis.title.x = element_blank(),
+              axis.title.y = element_blank(),
+              panel.border = element_blank(),
+              panel.grid.minor = element_blank(),
+              panel.grid.major = element_blank())
+      return(map_plot)
+    })
     
   }
 )
