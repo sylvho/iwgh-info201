@@ -4,7 +4,9 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(plotly)
-# install.packages("shinythemes")
+
+#install.packages("plotly")
+#install.packages("shinythemes")
 
 underage_prison_data <- read.csv("data/QT_less than 18 year olds_total.csv",
   stringsAsFactors = FALSE
@@ -210,6 +212,10 @@ map_data <- left_join(state_map, capacities,
   by = c("region" = "Jurisdiction")
 )
 
+# Rebecca's data for tab 4
+data <- read_xlsx("data/QT_noncitizens_total.xlsx", sheet = 1)
+
+
 ###
 
 shinyApp(
@@ -307,9 +313,14 @@ shinyApp(
       tabPanel(
         "Non-Citizen Inmate Population",
         sidebarPanel(
-          # widget/sidebar here
+          selectInput("year", "Year", data$year)
         ),
-        mainPanel()
+        mainPanel(
+          tabsetPanel(type = "tabs",
+                      tabPanel("U.S. Total", plotOutput("us_plot", height = 800)), 
+                      tabPanel("Federal", plotOutput("federal_plot", height = 800)),
+                      tabPanel("States", plotOutput("states_plot", height = 800)))
+        )
       )
     )
   ),
@@ -517,5 +528,54 @@ shinyApp(
     width = 700,
     height = 350
     )
+    
+    ### Rebecca's server info for tab 4
+    states_plot <- reactive({
+      summary <- filter(data, Jurisdiction == "U.S.total" | Jurisdiction == "Federal" | Jurisdiction == "State")
+      states <- anti_join(data, summary) %>% 
+        filter(states$year == input$year)
+      states_coor <- map_data("state") %>% 
+        group_by(region) %>% 
+        filter(order == max(order))
+      states_coor_2 <- map_data("state") %>% 
+        group_by(region) %>% 
+        filter(order == max(order))
+      colnames(states_coor)[colnames(states_coor) == "region"] <- "Jurisdiction"
+      states_coor$Jurisdiction <- toTitleCase(states_coor$Jurisdiction)
+      states_coor <- left_join(states, states_coor, by = "Jurisdiction") %>% 
+        select(long, lat, Jurisdiction)
+      
+      chart <- ggplot(data = states) + 
+        geom_bar(mapping = aes(x = Jurisdiction, y = number, fill = Jurisdiction), position = "dodge", stat = "identity") + 
+        scale_color_brewer(palette = "Set3") +
+        coord_flip()
+      
+      chart
+      
+    })
+    
+    us_plot <- reactive({
+      summary <- filter(data, Jurisdiction == "U.S.total")
+      
+      chart <- ggplot(data = summary) + 
+        geom_bar(mapping = aes(x = year, y = number, fill = year), position = "dodge", stat = "identity") + 
+        scale_color_brewer(palette = "Set3")
+      
+      chart
+    })
+    
+    federal_plot <- reactive({
+      summary <- filter(data, Jurisdiction == "Federal")
+      
+      chart <- ggplot(data = summary) + 
+        geom_bar(mapping = aes(x = year, y = number, fill = year), position = "dodge", stat = "identity") + 
+        scale_color_brewer(palette = "Set3")
+      
+      chart
+    })
+    
+    output$states_plot <- renderPlot({states_plot()})
+    output$us_plot <- renderPlot({us_plot()})
+    output$federal_plot <- renderPlot({federal_plot()})
   }
 )
