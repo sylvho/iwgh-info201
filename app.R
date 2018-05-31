@@ -4,6 +4,9 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(plotly)
+library(readxl)
+library(RColorBrewer)
+library(tools)
 
 #install.packages("plotly")
 #install.packages("shinythemes")
@@ -215,7 +218,6 @@ map_data <- left_join(state_map, capacities,
 # Rebecca's data for tab 4
 data <- read_xlsx("data/QT_noncitizens_total.xlsx", sheet = 1)
 
-
 ###
 
 shinyApp(
@@ -313,7 +315,12 @@ shinyApp(
       tabPanel(
         "Non-Citizen Inmate Population",
         sidebarPanel(
-          selectInput("year", "Year", data$year)
+          selectInput("year", "Year", data$year), 
+          
+          br(),
+          
+          radioButtons("viz", "Visualization", c("Bar Chart" = "bar", 
+                                                 "Map Chart" = "map"))
         ),
         mainPanel(
           tabsetPanel(type = "tabs",
@@ -534,24 +541,29 @@ shinyApp(
       summary <- filter(data, Jurisdiction == "U.S.total" | Jurisdiction == "Federal" | Jurisdiction == "State")
       states <- anti_join(data, summary) %>% 
         filter(states$year == input$year)
-      states_coor <- map_data("state") %>% 
-        group_by(region) %>% 
-        filter(order == max(order))
-      states_coor_2 <- map_data("state") %>% 
-        group_by(region) %>% 
-        filter(order == max(order))
-      colnames(states_coor)[colnames(states_coor) == "region"] <- "Jurisdiction"
-      states_coor$Jurisdiction <- toTitleCase(states_coor$Jurisdiction)
-      states_coor <- left_join(states, states_coor, by = "Jurisdiction") %>% 
-        select(long, lat, Jurisdiction)
+      states_coor_2 <- map_data("state")
+      colnames(states_coor_2)[colnames(states_coor_2) == "region"] <- "Jurisdiction"
+      states_coor_2$Jurisdiction <- toTitleCase(states_coor_2$Jurisdiction)
+      states_coor <- left_join(states, states_coor_2, by = "Jurisdiction") %>% 
+        select(long, lat, Jurisdiction, number, year)
+      states_coor <- na.omit(states_coor)
       
       chart <- ggplot(data = states) + 
         geom_bar(mapping = aes(x = Jurisdiction, y = number, fill = Jurisdiction), position = "dodge", stat = "identity") + 
         scale_color_brewer(palette = "Set3") +
         coord_flip()
       
-      chart
+      state_map <- switch (input$viz,
+                           bar = chart <- ggplot(data = states) + 
+                             geom_bar(mapping = aes(x = Jurisdiction, y = number, fill = Jurisdiction), position = "dodge", stat = "identity") + 
+                             scale_color_brewer(palette = "Set3") +
+                             coord_flip(),
+                           map = chart <- ggplot(data = states_coor) + 
+                             geom_polygon(aes(x = long, y = lat, fill = number, group = Jurisdiction)) + 
+                             scale_fill_gradientn(colours = brewer.pal(name = "Set3", n = 10))
+      )
       
+      chart
     })
     
     us_plot <- reactive({
