@@ -8,9 +8,9 @@ library(readxl)
 library(RColorBrewer)
 library(tools)
 
-#install.packages("plotly")
-#install.packages("shinythemes")
-#install.packages("readxl")
+# install.packages("plotly")
+# install.packages("shinythemes")
+# install.packages("readxl")
 
 # Matt's data for Tab 1 #
 
@@ -146,7 +146,7 @@ rate_non_national_2007 <- filter(prison_rate_non_national, year == 2007) %>%
   summarise(mean = mean(pop))
 
 # Jevandre's data for tab 2
-
+# Manipulating and shaping data
 capacities <- read.csv("data/capacity_data.csv", stringsAsFactors = FALSE)
 capacities <- capacities %>%
   mutate(
@@ -157,22 +157,22 @@ capacities <- capacities %>%
   )
 capacities$Jurisdiction <- tolower(capacities$Jurisdiction)
 map_data <- left_join(state_map, capacities,
-  by = c("region" = "Jurisdiction")
+  by = c(c("region" = "Jurisdiction") = "Jurisdiction")
 )
 
 # Sylvia's data for Tab 3 #
 
 underage_prison_data <- read.csv("data/QT_less than 18 year olds_total.csv",
-                                 stringsAsFactors = FALSE
+  stringsAsFactors = FALSE
 )
 female_prison_data <- read.csv("data/QT_less than 18 year olds_female.csv",
-                               stringsAsFactors = FALSE
+  stringsAsFactors = FALSE
 )
 male_prison_data <- read.csv("data/QT_less than 18 year olds_male.csv",
-                             stringsAsFactors = FALSE
+  stringsAsFactors = FALSE
 )
 
-# Rename year columns 
+# Rename year columns
 colnames(underage_prison_data) <- c(
   "Jurisdiction", "2000", "2001", "2002", "2003",
   "2004", "2005", "2006", "2007", "2008", "2009",
@@ -191,19 +191,19 @@ colnames(male_prison_data) <- c(
 
 # Convert into long data
 long_underage_data <- gather(underage_prison_data,
-                             key = year, value = value, "2000",
-                             "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
-                             "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016"
+  key = year, value = value, "2000",
+  "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
+  "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016"
 )
 long_female_data <- gather(female_prison_data,
-                           key = year, value = Female, "2000",
-                           "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
-                           "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016"
+  key = year, value = Female, "2000",
+  "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
+  "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016"
 )
 long_male_data <- gather(male_prison_data,
-                         key = year, value = Male, "2000",
-                         "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
-                         "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016"
+  key = year, value = Male, "2000",
+  "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
+  "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016"
 )
 
 long_underage_data$year <- as.numeric(long_underage_data$year)
@@ -276,7 +276,8 @@ shinyApp(
           )
         )
       ),
-      # Second tab
+      # Jevandre's ui info for tab 2
+      # A tab with two panels, one for widgets and one for the map
       tabPanel(
         "Population and Overpopulation",
         sidebarPanel(
@@ -284,17 +285,36 @@ shinyApp(
           selectInput("option_choice",
             label = "Stats",
             choices = list(
+              list(
               "Custody Population" = "Custody.population",
-              "Rate %" = "rate.pct",
-              "Operational %" = "operational.pct",
-              "Design %" = "design.pct"
+              "Operational Capacity %" = "operational.pct",
+              "Design Capacity %" = "design.pct",
+              "Rated Capacity %" = "rate.pct"
+            ) = "Custody.population",
+              list(
+              "Custody Population" = "Custody.population",
+              "Operational Capacity %" = "operational.pct",
+              "Design Capacity %" = "design.pct",
+              "Rated Capacity %" = "rate.pct"
+            ) = "operational.pct",
+              list(
+              "Custody Population" = "Custody.population",
+              "Operational Capacity %" = "operational.pct",
+              "Design Capacity %" = "design.pct",
+              "Rated Capacity %" = "rate.pct"
+            ) = "design.pct",
+              list(
+              "Custody Population" = "Custody.population",
+              "Operational Capacity %" = "operational.pct",
+              "Design Capacity %" = "design.pct",
+              "Rated Capacity %" = "rate.pct"
+            ) = "rate.pct"
             )
           )
         ),
         mainPanel(
-          tabsetPanel(
-            tabPanel("Tab 1", plotOutput("map"))
-          )
+          plotOutput("map"),
+          textOutput("analysis_j")
         )
       ),
       # Third tab
@@ -315,9 +335,11 @@ shinyApp(
         mainPanel(
           tabsetPanel(
             # Tab for visaulization and description
-            tabPanel("Plot", plotOutput("plot", click = "plot_click"), 
-                     verbatimTextOutput("click_info"),
-                     textOutput("analysis")),
+            tabPanel(
+              "Plot", plotOutput("plot", click = "plot_click"),
+              verbatimTextOutput("click_info"),
+              textOutput("analysis")
+            ),
             # Tab for further analysis
             tabPanel("Analysis", htmlOutput("further_analysis"))
           )
@@ -327,18 +349,24 @@ shinyApp(
       tabPanel(
         "Non-Citizen Inmate Population",
         sidebarPanel(
-          selectInput("year", "Year", data$year), 
-          
+          selectInput("year", "Year", data$year),
+
           br(),
-          
-          radioButtons("viz", "Visualization", c("Bar Chart" = "bar", 
-                                                 "Map Chart" = "map"))
+
+          radioButtons("viz", "Visualization", c(
+            c("Bar Chart" = "bar", 
+                                                 "Map Chart" = "map") = "bar",
+            c("Bar Chart" = "bar", 
+                                                 "Map Chart" = "map") = "map"
+          ))
         ),
         mainPanel(
-          tabsetPanel(type = "tabs",
-                      tabPanel("U.S. Total", plotOutput("us_plot", height = 800)), 
-                      tabPanel("Federal", plotOutput("federal_plot", height = 800)),
-                      tabPanel("States", plotOutput("states_plot", height = 800)))
+          tabsetPanel(
+            type = "tabs",
+            tabPanel("U.S. Total", plotOutput("us_plot", height = 800)),
+            tabPanel("Federal", plotOutput("federal_plot", height = 800)),
+            tabPanel("States", plotOutput("states_plot", height = 800))
+          )
         )
       )
     )
@@ -481,6 +509,7 @@ shinyApp(
     })
 
     # Jevandre's server info for tab 2
+    # Outputs a heatmap based on selections in the ui
     output$map <- renderPlot({
       map_data_year <- filter(map_data, Year == input$year_choice_j) %>%
         select(long, lat, group, choice = input$option_choice)
@@ -506,23 +535,36 @@ shinyApp(
     width = 700,
     height = 350
     )
-    
+
+    # Analysis for overpopulation tab
+    output$analysis_j <- renderText({
+      return("Which states have the most overcrowded prisons? Do they show any improvement over the years?
+The population data here spans from 2011 to 2016, with custody population and 
+prison facility capacity data. The operational capacity refers to how many 
+inmates can safely fit in the prisons, and considers the design capacity and 
+rated capacity in its calculation. Design capacity is the number of inmates the prison was designed to hold, and rated capacities are designated by a rating official. In the tabs above, custody population and types of capacity measure can be selected to change the heatmap. 
+The highest recorded custody population was in Texas in 2011 with 141,353 
+inmates, however this was only 88.3% of the operational capacity. Throughout the recorded years, the highest custody populations in order are in Texas, California, and Florida. North Dakota on the other hand, consistently has some of the lowest custody populations, between 1300 and 1600 inmates which hits up to 158.5% of operational capacity in 2013. However the percent drops in subsequent years to below or around 100% of operational capacity. Illinois on the other hand has been above 140% of operational capacity in all years besides 2012 without showing signs many signs of improvement. As far as design capacity, Alabama's custody population is above 175% for all years. Illinois is also still high in design capacity %. New Mexico and Mississippi have some of the least crowded prisons in all of the years, with custody populations less than 65% of operational capacities. 
+Data taken from Bureau of Justice Statistics: 
+             https://www.bjs.gov/index.cfm?ty=nps")
+    })
+
     # Sylvia's server info for Tab 3
-    
+
     # Filter data for visualization based on input
     filtered_data <- reactive({
       data <- long_underage_data %>%
         filter(input$location_choice[1] == long_underage_data$Jurisdiction &
-                 long_underage_data$year >= input$year_choice[1] &
-                 long_underage_data$year <= input$year_choice[2])
+          long_underage_data$year >= input$year_choice[1] &
+          long_underage_data$year <= input$year_choice[2])
       data2 <- rbind(
-        data.frame("Year" = data$year, "Count" = data$Female, "Sex" = "Female"),
-        data.frame("Year" = data$year, "Count" = data$Male, "Sex" = "Male")
+        data.frame(data.frame("Year" = data$year, "Count" = data$Female, "Sex" = "Female") = data$year, data.frame("Year" = data$year, "Count" = data$Female, "Sex" = "Female") = data$Female, data.frame("Year" = data$year, "Count" = data$Female, "Sex" = "Female") = "Female"),
+        data.frame(data.frame("Year" = data$year, "Count" = data$Male, "Sex" = "Male") = data$year, data.frame("Year" = data$year, "Count" = data$Male, "Sex" = "Male") = data$Male, data.frame("Year" = data$year, "Count" = data$Male, "Sex" = "Male") = "Male")
       )
       return(data2)
     })
-    
-    # Create bar graph 
+
+    # Create bar graph
     output$plot <- renderPlot({
       ggplot(filtered_data(), aes(x = Year, y = Count, fill = Sex)) +
         geom_bar(stat = "identity") +
@@ -530,78 +572,80 @@ shinyApp(
           title = "Underage Inmate Population in US (2010-2016)"
         )
     })
-    
+
     # Create click user interaction
     output$click_info <- renderText({
       paste0("x=", input$plot_click$x, "\ny=", input$plot_click$y)
     })
-    
+
     # Filter data for first year selected
     filtered_analysis_1 <- reactive({
       analysis_filter <- long_underage_data %>%
-        filter(input$location_choice[1] == long_underage_data$Jurisdiction & 
-                 long_underage_data$year == input$year_choice[1]) 
+        filter(input$location_choice[1] == long_underage_data$Jurisdiction &
+          long_underage_data$year == input$year_choice[1])
       return(analysis_filter$value)
     })
-    
+
     # Filter data for last year selected
     filtered_analysis_2 <- reactive({
       analysis_filter <- long_underage_data %>%
-        filter(input$location_choice[1] == long_underage_data$Jurisdiction & 
-                 long_underage_data$year == input$year_choice[2]) 
+        filter(input$location_choice[1] == long_underage_data$Jurisdiction &
+          long_underage_data$year == input$year_choice[2])
       return(analysis_filter$value)
     })
-    
+
     # Filter data to calculate mean based on state/year range selection
     filtered_analysis_mean <- reactive({
       analysis_filter <- long_underage_data %>%
-        filter(input$location_choice[1] == long_underage_data$Jurisdiction & 
-                 long_underage_data$year >= input$year_choice[1] &
-                 long_underage_data$year <= input$year_choice[2]) %>%
+        filter(input$location_choice[1] == long_underage_data$Jurisdiction &
+          long_underage_data$year >= input$year_choice[1] &
+          long_underage_data$year <= input$year_choice[2]) %>%
         summarize(mean = mean(value))
       return(round(analysis_filter))
     })
-    
+
     # Filter data for females
     filtered_analysis_female <- reactive({
       analysis_filter <- long_underage_data %>%
-        filter(input$location_choice[1] == long_underage_data$Jurisdiction & 
-                 long_underage_data$year >= input$year_choice[1] &
-                 long_underage_data$year <= input$year_choice[2])
+        filter(input$location_choice[1] == long_underage_data$Jurisdiction &
+          long_underage_data$year >= input$year_choice[1] &
+          long_underage_data$year <= input$year_choice[2])
       sum <- sum(analysis_filter$Female)
       return(sum)
     })
-    
+
     # Filter data for males
     filtered_analysis_male <- reactive({
       analysis_filter <- long_underage_data %>%
-        filter(input$location_choice[1] == long_underage_data$Jurisdiction & 
-                 long_underage_data$year >= input$year_choice[1] &
-                 long_underage_data$year <= input$year_choice[2])
+        filter(input$location_choice[1] == long_underage_data$Jurisdiction &
+          long_underage_data$year >= input$year_choice[1] &
+          long_underage_data$year <= input$year_choice[2])
       sum <- sum(analysis_filter$Male)
       return(sum)
     })
-    
-    # Output text for visualiation description 
+
+    # Output text for visualiation description
     output$analysis <- renderText({
-      return(paste0("The bar graph above shows the distribution of underage inmates
-                    (inmates aged 17 years or younger) held in state prisons in ", 
-                    input$location_choice[1], " from ", input$year_choice[1], " to ", 
-                    input$year_choice[2], ". Overall, the total underage inmate population
-                    in ", input$location_choice[1]," has gradually decreased over time. 
-                    The population went from ", filtered_analysis_1(), " inmates in ", 
-                    input$year_choice[1], " to ", filtered_analysis_2(), " inmates in ",
-                    input$year_choice[2], ". The mean number of inmates in ", 
-                    input$location_choice[1], " for each year is ", filtered_analysis_mean(),
-                    ". The ratio of the sexes of the underage inmate population is heavily
-                    skewed towards males. From ", input$year_choice[1], " to ", 
-                    input$year_choice[2], ", there was a total underage female inmate 
-                    population of ", filtered_analysis_female(), 
-                    " compared to the much larger total underage male inmate population of ", 
-                    filtered_analysis_male(), " in ", input$location_choice[1], ". Data drawn from
-                    Bureau of Justice Statistics."))
+      return(paste0(
+        "The bar graph above shows the distribution of underage inmates
+                    (inmates aged 17 years or younger) held in state prisons in ",
+        input$location_choice[1], " from ", input$year_choice[1], " to ",
+        input$year_choice[2], ". Overall, the total underage inmate population
+                    in ", input$location_choice[1], " has gradually decreased over time. 
+                    The population went from ", filtered_analysis_1(), " inmates in ",
+        input$year_choice[1], " to ", filtered_analysis_2(), " inmates in ",
+        input$year_choice[2], ". The mean number of inmates in ",
+        input$location_choice[1], " for each year is ", filtered_analysis_mean(),
+        ". The ratio of the sexes of the underage inmate population is heavily
+                    skewed towards males. From ", input$year_choice[1], " to ",
+        input$year_choice[2], ", there was a total underage female inmate 
+                    population of ", filtered_analysis_female(),
+        " compared to the much larger total underage male inmate population of ",
+        filtered_analysis_male(), " in ", input$location_choice[1], ". Data drawn from
+                    Bureau of Justice Statistics."
+      ))
     })
-    
+
     # Output text for further analysis
     output$further_analysis <- renderText({
       return(paste0("<B><I>How have the number of inmates in federal or state prisons under the 
@@ -618,59 +662,65 @@ shinyApp(
                     males have consistently accounted for about 85% of the juvenile population.
                     Data drawn from Bureau of Justice Statistics."))
     })
-    
+
     ### Rebecca's server info for tab 4
     states_plot <- reactive({
       summary <- filter(data, Jurisdiction == "U.S.total" | Jurisdiction == "Federal" | Jurisdiction == "State")
-      states <- anti_join(data, summary) %>% 
+      states <- anti_join(data, summary) %>%
         filter(states$year == input$year)
       states_coor_2 <- map_data("state")
       colnames(states_coor_2)[colnames(states_coor_2) == "region"] <- "Jurisdiction"
       states_coor_2$Jurisdiction <- toTitleCase(states_coor_2$Jurisdiction)
-      states_coor <- left_join(states, states_coor_2, by = "Jurisdiction") %>% 
+      states_coor <- left_join(states, states_coor_2, by = "Jurisdiction") %>%
         select(long, lat, Jurisdiction, number, year)
       states_coor <- na.omit(states_coor)
-      
-      chart <- ggplot(data = states) + 
-        geom_bar(mapping = aes(x = Jurisdiction, y = number, fill = Jurisdiction), position = "dodge", stat = "identity") + 
+
+      chart <- ggplot(data = states) +
+        geom_bar(mapping = aes(x = Jurisdiction, y = number, fill = Jurisdiction), position = "dodge", stat = "identity") +
         scale_color_brewer(palette = "Set3") +
         coord_flip()
-      
-      state_map <- switch (input$viz,
-                           bar = chart <- ggplot(data = states) + 
-                             geom_bar(mapping = aes(x = Jurisdiction, y = number, fill = Jurisdiction), position = "dodge", stat = "identity") + 
-                             scale_color_brewer(palette = "Set3") +
-                             coord_flip(),
-                           map = chart <- ggplot(data = states_coor) + 
-                             geom_polygon(aes(x = long, y = lat, fill = number, group = Jurisdiction)) + 
-                             scale_fill_gradientn(colours = brewer.pal(name = "Set3", n = 10))
+
+      state_map <- switch(input$viz,
+        bar = chart <- ggplot(data = states) +
+          geom_bar(mapping = aes(x = Jurisdiction, y = number, fill = Jurisdiction), position = "dodge", stat = "identity") +
+          scale_color_brewer(palette = "Set3") +
+          coord_flip(),
+        map = chart <- ggplot(data = states_coor) +
+          geom_polygon(aes(x = long, y = lat, fill = number, group = Jurisdiction)) +
+          scale_fill_gradientn(colours = brewer.pal(name = "Set3", n = 10))
       )
-      
+
       chart
     })
-    
+
     us_plot <- reactive({
       summary <- filter(data, Jurisdiction == "U.S.total")
-      
-      chart <- ggplot(data = summary) + 
-        geom_bar(mapping = aes(x = year, y = number, fill = year), position = "dodge", stat = "identity") + 
+
+      chart <- ggplot(data = summary) +
+        geom_bar(mapping = aes(x = year, y = number, fill = year), position = "dodge", stat = "identity") +
         scale_color_brewer(palette = "Set3")
-      
+
       chart
     })
-    
+
     federal_plot <- reactive({
       summary <- filter(data, Jurisdiction == "Federal")
-      
-      chart <- ggplot(data = summary) + 
-        geom_bar(mapping = aes(x = year, y = number, fill = year), position = "dodge", stat = "identity") + 
+
+      chart <- ggplot(data = summary) +
+        geom_bar(mapping = aes(x = year, y = number, fill = year), position = "dodge", stat = "identity") +
         scale_color_brewer(palette = "Set3")
-      
+
       chart
     })
-    
-    output$states_plot <- renderPlot({states_plot()})
-    output$us_plot <- renderPlot({us_plot()})
-    output$federal_plot <- renderPlot({federal_plot()})
+
+    output$states_plot <- renderPlot({
+      states_plot()
+    })
+    output$us_plot <- renderPlot({
+      us_plot()
+    })
+    output$federal_plot <- renderPlot({
+      federal_plot()
+    })
   }
 )
