@@ -10,62 +10,7 @@ library(tools)
 
 #install.packages("plotly")
 #install.packages("shinythemes")
-
-underage_prison_data <- read.csv("data/QT_less than 18 year olds_total.csv",
-  stringsAsFactors = FALSE
-)
-female_prison_data <- read.csv("data/QT_less than 18 year olds_female.csv",
-  stringsAsFactors = FALSE
-)
-male_prison_data <- read.csv("data/QT_less than 18 year olds_male.csv",
-  stringsAsFactors = FALSE
-)
-colnames(underage_prison_data) <- c(
-  "Jurisdiction", "2000", "2001", "2002", "2003",
-  "2004", "2005", "2006", "2007", "2008", "2009",
-  "2010", "2011", "2012", "2013", "2014", "2015", "2016"
-)
-colnames(female_prison_data) <- c(
-  "Jurisdiction", "2000", "2001", "2002", "2003",
-  "2004", "2005", "2006", "2007", "2008", "2009",
-  "2010", "2011", "2012", "2013", "2014", "2015", "2016"
-)
-colnames(male_prison_data) <- c(
-  "Jurisdiction", "2000", "2001", "2002", "2003",
-  "2004", "2005", "2006", "2007", "2008", "2009",
-  "2010", "2011", "2012", "2013", "2014", "2015", "2016"
-)
-long_underage_data <- gather(underage_prison_data,
-  key = year, value = value, "2000",
-  "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
-  "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016"
-)
-long_female_data <- gather(female_prison_data,
-  key = year, value = Female, "2000",
-  "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
-  "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016"
-)
-long_male_data <- gather(male_prison_data,
-  key = year, value = Male, "2000",
-  "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
-  "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016"
-)
-
-long_underage_data$year <- as.numeric(long_underage_data$year)
-long_underage_data$value <- as.numeric(long_underage_data$value)
-
-long_female_data$year <- as.numeric(long_female_data$year)
-long_female_data$Female <- as.numeric(long_female_data$Female)
-
-long_male_data$year <- as.numeric(long_male_data$year)
-long_male_data$Male <- as.numeric(long_male_data$Male)
-
-long_underage_data <- left_join(long_underage_data, long_female_data)
-long_underage_data <- left_join(long_underage_data, long_male_data)
-
-year_range <- range(long_underage_data$year)
-
-
+#install.packages("readxl")
 
 # Matt's data for Tab 1 #
 
@@ -215,6 +160,67 @@ map_data <- left_join(state_map, capacities,
   by = c("region" = "Jurisdiction")
 )
 
+# Sylvia's data for Tab 3 #
+
+underage_prison_data <- read.csv("data/QT_less than 18 year olds_total.csv",
+                                 stringsAsFactors = FALSE
+)
+female_prison_data <- read.csv("data/QT_less than 18 year olds_female.csv",
+                               stringsAsFactors = FALSE
+)
+male_prison_data <- read.csv("data/QT_less than 18 year olds_male.csv",
+                             stringsAsFactors = FALSE
+)
+
+# Rename year columns 
+colnames(underage_prison_data) <- c(
+  "Jurisdiction", "2000", "2001", "2002", "2003",
+  "2004", "2005", "2006", "2007", "2008", "2009",
+  "2010", "2011", "2012", "2013", "2014", "2015", "2016"
+)
+colnames(female_prison_data) <- c(
+  "Jurisdiction", "2000", "2001", "2002", "2003",
+  "2004", "2005", "2006", "2007", "2008", "2009",
+  "2010", "2011", "2012", "2013", "2014", "2015", "2016"
+)
+colnames(male_prison_data) <- c(
+  "Jurisdiction", "2000", "2001", "2002", "2003",
+  "2004", "2005", "2006", "2007", "2008", "2009",
+  "2010", "2011", "2012", "2013", "2014", "2015", "2016"
+)
+
+# Convert into long data
+long_underage_data <- gather(underage_prison_data,
+                             key = year, value = value, "2000",
+                             "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
+                             "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016"
+)
+long_female_data <- gather(female_prison_data,
+                           key = year, value = Female, "2000",
+                           "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
+                           "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016"
+)
+long_male_data <- gather(male_prison_data,
+                         key = year, value = Male, "2000",
+                         "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008",
+                         "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016"
+)
+
+long_underage_data$year <- as.numeric(long_underage_data$year)
+long_underage_data$value <- as.numeric(long_underage_data$value)
+
+long_female_data$year <- as.numeric(long_female_data$year)
+long_female_data$Female <- as.numeric(long_female_data$Female)
+
+long_male_data$year <- as.numeric(long_male_data$year)
+long_male_data$Male <- as.numeric(long_male_data$Male)
+
+# Join all datasets into one
+long_underage_data <- left_join(long_underage_data, long_female_data)
+long_underage_data <- left_join(long_underage_data, long_male_data)
+
+year_range <- range(long_underage_data$year)
+
 # Rebecca's data for tab 4
 data <- read_xlsx("data/QT_noncitizens_total.xlsx", sheet = 1)
 
@@ -270,7 +276,7 @@ shinyApp(
           )
         )
       ),
-      # End of Matt's section, Second tab
+      # Second tab
       tabPanel(
         "Population and Overpopulation",
         sidebarPanel(
@@ -295,20 +301,26 @@ shinyApp(
       tabPanel(
         "Underage Inmate Population",
         sidebarPanel(
+          # Create dropdown menu of states
           selectInput("location_choice",
             label = "Select a location:",
-            long_underage_data$Jurisdiction, selected = "U.S. total",
-            multiple = FALSE, selectize = TRUE
+            long_underage_data$Jurisdiction, selectize = FALSE
           ),
+          # Create slider to select range of years
           sliderInput("year_choice",
             label = "Select a range of years", min = year_range[1],
             max = year_range[2], value = year_range, step = 1
           )
         ),
         mainPanel(
-          plotOutput("plot", click = "plot_click"),
-          verbatimTextOutput("click_info"),
-          textOutput("analysis")
+          tabsetPanel(
+            # Tab for visaulization and description
+            tabPanel("Plot", plotOutput("plot", click = "plot_click"), 
+                     verbatimTextOutput("click_info"),
+                     textOutput("analysis")),
+            # Tab for further analysis
+            tabPanel("Analysis", htmlOutput("further_analysis"))
+          )
         )
       ),
       # Fourth tab
@@ -333,47 +345,6 @@ shinyApp(
   ),
 
   server = function(input, output) {
-    # For third tab: underage inmate population
-    filtered_data <- reactive({
-      data <- long_underage_data %>%
-        filter(input$location_choice[1] == long_underage_data$Jurisdiction &
-          long_underage_data$year >= input$year_choice[1] &
-          long_underage_data$year <= input$year_choice[2])
-      data2 <- rbind(
-        data.frame("Year" = data$year, "Count" = data$Female, "Sex" = "Female"),
-        data.frame("Year" = data$year, "Count" = data$Male, "Sex" = "Male")
-      )
-      return(data2)
-    })
-
-    output$plot <- renderPlot({
-      ggplot(filtered_data(), aes(x = Year, y = Count, fill = Sex)) +
-        geom_bar(stat = "identity") +
-        labs(
-          title = "Underage Inmate Population in US (2010-2016)"
-        )
-    })
-
-    output$click_info <- renderText({
-      paste0("x=", input$plot_click$x, "\ny=", input$plot_click$y)
-    })
-
-    filtered_analysis <- reactive({
-      analysis_filter <- long_underage_data %>%
-        filter(input$location_choice[1] == long_underage_data$Jurisdiction &
-          long_underage_data$year >= input$year_choice[1] &
-          long_underage_data$year <= input$year_choice[2])
-    })
-
-    output$analysis <- renderText({
-      return(paste0(
-        "The bar graph above shows the distribution of underage inmates
-                  (inmates aged 17 years or younger) held in state prisons in ",
-        input$location_choice[1], " from ", input$year_choice[1], " to ",
-        input$year_choice[2], ". Overall, the total underage inmate population
-                  in the US has gradually decreased over time, "
-      ))
-    })
 
     # Matt's server info for Tab 1 #
 
@@ -509,7 +480,7 @@ shinyApp(
       return(input$button)
     })
 
-    ### Jevandre's server info for tab 2
+    # Jevandre's server info for tab 2
     output$map <- renderPlot({
       map_data_year <- filter(map_data, Year == input$year_choice_j) %>%
         select(long, lat, group, choice = input$option_choice)
@@ -535,6 +506,118 @@ shinyApp(
     width = 700,
     height = 350
     )
+    
+    # Sylvia's server info for Tab 3
+    
+    # Filter data for visualization based on input
+    filtered_data <- reactive({
+      data <- long_underage_data %>%
+        filter(input$location_choice[1] == long_underage_data$Jurisdiction &
+                 long_underage_data$year >= input$year_choice[1] &
+                 long_underage_data$year <= input$year_choice[2])
+      data2 <- rbind(
+        data.frame("Year" = data$year, "Count" = data$Female, "Sex" = "Female"),
+        data.frame("Year" = data$year, "Count" = data$Male, "Sex" = "Male")
+      )
+      return(data2)
+    })
+    
+    # Create bar graph 
+    output$plot <- renderPlot({
+      ggplot(filtered_data(), aes(x = Year, y = Count, fill = Sex)) +
+        geom_bar(stat = "identity") +
+        labs(
+          title = "Underage Inmate Population in US (2010-2016)"
+        )
+    })
+    
+    # Create click user interaction
+    output$click_info <- renderText({
+      paste0("x=", input$plot_click$x, "\ny=", input$plot_click$y)
+    })
+    
+    # Filter data for first year selected
+    filtered_analysis_1 <- reactive({
+      analysis_filter <- long_underage_data %>%
+        filter(input$location_choice[1] == long_underage_data$Jurisdiction & 
+                 long_underage_data$year == input$year_choice[1]) 
+      return(analysis_filter$value)
+    })
+    
+    # Filter data for last year selected
+    filtered_analysis_2 <- reactive({
+      analysis_filter <- long_underage_data %>%
+        filter(input$location_choice[1] == long_underage_data$Jurisdiction & 
+                 long_underage_data$year == input$year_choice[2]) 
+      return(analysis_filter$value)
+    })
+    
+    # Filter data to calculate mean based on state/year range selection
+    filtered_analysis_mean <- reactive({
+      analysis_filter <- long_underage_data %>%
+        filter(input$location_choice[1] == long_underage_data$Jurisdiction & 
+                 long_underage_data$year >= input$year_choice[1] &
+                 long_underage_data$year <= input$year_choice[2]) %>%
+        summarize(mean = mean(value))
+      return(round(analysis_filter))
+    })
+    
+    # Filter data for females
+    filtered_analysis_female <- reactive({
+      analysis_filter <- long_underage_data %>%
+        filter(input$location_choice[1] == long_underage_data$Jurisdiction & 
+                 long_underage_data$year >= input$year_choice[1] &
+                 long_underage_data$year <= input$year_choice[2])
+      sum <- sum(analysis_filter$Female)
+      return(sum)
+    })
+    
+    # Filter data for males
+    filtered_analysis_male <- reactive({
+      analysis_filter <- long_underage_data %>%
+        filter(input$location_choice[1] == long_underage_data$Jurisdiction & 
+                 long_underage_data$year >= input$year_choice[1] &
+                 long_underage_data$year <= input$year_choice[2])
+      sum <- sum(analysis_filter$Male)
+      return(sum)
+    })
+    
+    # Output text for visualiation description 
+    output$analysis <- renderText({
+      return(paste0("The bar graph above shows the distribution of underage inmates
+                    (inmates aged 17 years or younger) held in state prisons in ", 
+                    input$location_choice[1], " from ", input$year_choice[1], " to ", 
+                    input$year_choice[2], ". Overall, the total underage inmate population
+                    in ", input$location_choice[1]," has gradually decreased over time. 
+                    The population went from ", filtered_analysis_1(), " inmates in ", 
+                    input$year_choice[1], " to ", filtered_analysis_2(), " inmates in ",
+                    input$year_choice[2], ". The mean number of inmates in ", 
+                    input$location_choice[1], " for each year is ", filtered_analysis_mean(),
+                    ". The ratio of the sexes of the underage inmate population is heavily
+                    skewed towards males. From ", input$year_choice[1], " to ", 
+                    input$year_choice[2], ", there was a total underage female inmate 
+                    population of ", filtered_analysis_female(), 
+                    " compared to the much larger total underage male inmate population of ", 
+                    filtered_analysis_male(), " in ", input$location_choice[1], ". Data drawn from
+                    Bureau of Justice Statistics."))
+    })
+    
+    # Output text for further analysis
+    output$further_analysis <- renderText({
+      return(paste0("<B><I>How have the number of inmates in federal or state prisons under the 
+                    age of 17 changed over time and what is the gender composition of the 
+                    underage inmate population?</B></I> Between 2001 and 2015, the US juvenile 
+                    inprisonment rates fell by 54%.
+                    This decline is attributed mostly in part to state policymakers working 
+                    to reform the juvenile incarceration system by looking to use alternate 
+                    forms of punishment instead of incarceration. The drop in the underage 
+                    inmate population is important because delinquency is frequently associated 
+                    with higher crime rates and greater risk of physical and mental struggles 
+                    in adulthood, as well as a lower likelihood of completing high school. 
+                    Furthermore, underage inmates are more likely to be male than female, as 
+                    males have consistently accounted for about 85% of the juvenile population.
+                    Data drawn from Bureau of Justice Statistics."))
+    })
     
     ### Rebecca's server info for tab 4
     states_plot <- reactive({
