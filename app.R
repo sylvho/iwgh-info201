@@ -160,9 +160,15 @@ prison_rate_map <- left_join(prison_rate_non_national,
   by = "region"
 )
 
-expect_rate <- c(773919, 874803, 942798, 951100, 959088, 966266, 973505, 980346, 987659, 994892, 1001809)
+expect_rate <- c(
+  773919, 874803, 942798, 951100, 959088, 966266,
+  973505, 980346, 987659, 994892, 1001809
+)
 
-expect_years <- c(1990, 2000,	2008,	2009,	2010,	2011,	2012,	2013,	2014,	2015,	2016)
+expect_years <- c(
+  1990, 2000, 2008, 2009, 2010, 2011,
+  2012, 2013, 2014, 2015, 2016
+)
 
 expect_frame <- data.frame(expect_years, expect_rate)
 
@@ -174,11 +180,14 @@ prison_total_national$year <- as.numeric(prison_total_national$year)
 
 expect_frame$expect_rate <- as.numeric(expect_frame$expect_rate)
 
-expect_vs_national <- full_join(expect_frame, prison_total_national, by = 'year')
+expect_vs_national <- full_join(expect_frame,
+  prison_total_national,
+  by = "year"
+)
 
-expect_vs_national$Jurisdiction[1:11] = "Projected"
+expect_vs_national$Jurisdiction[1:11] <- "Projected"
 
-expect_vs_national$pop[1:11] = expect_rate
+expect_vs_national$pop[1:11] <- expect_rate
 
 rate_non_national_2000 <- filter(prison_rate_non_national, year == 2000) %>%
   arrange(-pop)
@@ -192,17 +201,16 @@ capacities <- read.csv("data/capacity_data.csv", stringsAsFactors = FALSE)
 capacities <- capacities %>%
   mutate(
     rate.pct = 100 * capacities$Custody.population / capacities$Rate,
-    operational.pct = 100 * capacities$Custody.population / capacities$Operational,
+    operational.pct = 100 * capacities$Custody.population /
+      capacities$Operational,
     design.pct = 100 * capacities$Custody.population / capacities$Design
   )
 capacities$Jurisdiction <- tolower(capacities$Jurisdiction)
-map_data <- left_join(state_map, capacities, by = c("region" = "Jurisdiction"))
-
-
+map_data <- left_join(state_map, capacities,
+  by = c("region" = "Jurisdiction")
+)
 
 ###
-
-
 
 shinyApp(
   ui = tagList(
@@ -224,7 +232,9 @@ shinyApp(
             selected = "Alabama"
           ),
           p(
-            "Data for the District of Columbia is only available up to 2000.")), 
+            "Data for the District of Columbia is only available up to 2000."
+          )
+        ),
 
         mainPanel(
           tabsetPanel(
@@ -252,11 +262,7 @@ shinyApp(
           )
         )
       ),
-      
-      
       # End of Matt's section, Second tab
-      
-      
       tabPanel(
         "Population and Overpopulation",
         sidebarPanel(
@@ -309,11 +315,6 @@ shinyApp(
   ),
 
   server = function(input, output) {
-    curr <- reactive({
-      curr_year <- input$button
-
-      return(curr_year)
-    })
     # For third tab: underage inmate population
     filtered_data <- reactive({
       data <- long_underage_data %>%
@@ -365,7 +366,7 @@ shinyApp(
         geom_polygon(aes(
           x = long, y = lat,
           group = group, fill = pop
-        )) + 
+        )) +
         scale_fill_continuous(low = "pink", high = "red") + theme_bw() +
         theme(
           axis.ticks = element_blank(),
@@ -379,8 +380,10 @@ shinyApp(
         )
 
       return(prison_map_total_year)
-    }, width = 700,
-    height = 350)
+    },
+    width = 700,
+    height = 350
+    )
 
     output$map2 <- renderPlot({
       prison_rate_filter_map <- filter(prison_rate_map, year == input$button)
@@ -402,8 +405,10 @@ shinyApp(
         )
 
       return(prison_map_rate_year)
-    }, width = 700,
-    height = 350)
+    },
+    width = 700,
+    height = 350
+    )
 
     output$chart1 <- renderPlotly({
       prison_total_non_national_filter <- filter(
@@ -419,9 +424,10 @@ shinyApp(
           x = "Year",
           y = "Prison Population",
           color = "Jurisdiction"
-        ) + theme(text = element_text(size=10),
-                  axis.text.x = element_text(angle=45, hjust=1))
-      ) %>% layout(margin = list(l = 85))
+        ) + theme(
+          text = element_text(size = 10),
+          axis.text.x = element_text(angle = 45, hjust = 1)
+        )) %>% layout(margin = list(l = 85))
 
       return(prison_total_national_point)
     })
@@ -437,8 +443,10 @@ shinyApp(
             x = "Year",
             y = "Prisoners per 100,000 State Residents",
             color = "Jurisdiction"
-          ) + theme(text = element_text(size=10),
-                    axis.text.x = element_text(angle=45, hjust=1))
+          ) + theme(
+            text = element_text(size = 10),
+            axis.text.x = element_text(angle = 45, hjust = 1)
+          )
       ) %>% layout(margin = list(l = 85))
 
       return(prison_rate_national_point)
@@ -446,15 +454,16 @@ shinyApp(
 
     output$chart3 <- renderPlotly({
       prison_total_national_point <- ggplotly(ggplot(data = prison_total_national) +
-        geom_point(aes(x = year, y = pop)) + 
-          geom_smooth(data = expect_frame, aes(x = expect_years, y = expect_rate)) +
+        geom_point(aes(x = year, y = pop)) +
+        geom_smooth(data = expect_frame, aes(x = expect_years, y = expect_rate)) +
         labs(
           title = "National Prison Population, 1978-2016",
           x = "Year",
           y = "Prison Population"
-        )  + theme(text = element_text(size=10),
-                   axis.text.x = element_text(angle=45, hjust=1)
-                   )) %>% layout(margin = list(l = 85))
+        ) + theme(
+          text = element_text(size = 10),
+          axis.text.x = element_text(angle = 45, hjust = 1)
+        )) %>% layout(margin = list(l = 85))
 
       return(prison_total_national_point)
     })
@@ -465,9 +474,10 @@ shinyApp(
           title = "National Prison Rate, 1978-2016",
           x = "Year",
           y = "Prison Population"
-        ) + theme(text = element_text(size=10),
-                  axis.text.x = element_text(angle=45, hjust=1)
-                  )) %>% layout(margin = list(l = 85))
+        ) + theme(
+          text = element_text(size = 10),
+          axis.text.x = element_text(angle = 45, hjust = 1)
+        )) %>% layout(margin = list(l = 85))
 
       return(prison_rate_national_point)
     })
@@ -483,11 +493,12 @@ shinyApp(
 
     ### Jevandre's server info for tab 2
     output$map <- renderPlot({
-      map_data_year <- filter(map_data, Year == input$year_choice_j)
+      map_data_year <- filter(map_data, Year == input$year_choice_j) %>%
+        select(long, lat, group, choice = input$option_choice)
       map_plot <- ggplot(data = map_data_year) +
         geom_polygon(aes(
           x = long, y = lat,
-          group = group, fill = Custody.population
+          group = group, fill = choice
         )) +
         scale_fill_continuous(low = "yellow", high = "red") +
         theme_bw() +
@@ -502,7 +513,9 @@ shinyApp(
           panel.grid.major = element_blank()
         )
       return(map_plot)
-    }, width = 700,
-    height = 350)
+    },
+    width = 700,
+    height = 350
+    )
   }
 )
