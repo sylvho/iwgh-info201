@@ -204,6 +204,8 @@ year_range <- range(long_underage_data$year)
 
 # Rebecca's data for tab 4
 data <- read_xlsx("data/QT_noncitizens_total.xlsx", sheet = 1)
+summary <- filter(data, Jurisdiction == "U.S.total" | Jurisdiction == "Federal" | Jurisdiction == "State")
+states <- anti_join(data, summary)
 
 ###
 
@@ -441,9 +443,15 @@ on Drugs. The drop from 2008 onwards similarly corresponds to changes in the
         mainPanel(
           tabsetPanel(
             type = "tabs",
-            tabPanel("U.S. Total", plotOutput("us_plot", height = 800)),
-            tabPanel("Federal", plotOutput("federal_plot", height = 800)),
-            tabPanel("States", plotOutput("states_plot", height = 800))
+            tabPanel("U.S. Total", plotOutput("us_plot", height = 800), 
+                     br(), 
+                     textOutput("us_text")),
+            tabPanel("Federal", plotOutput("federal_plot", height = 800), 
+                     br(),
+                     textOutput("federal_text")),
+            tabPanel("States", plotOutput("states_plot", height = 800), 
+                     br(),
+                     textOutput("states_text"))
           )
         )
       )
@@ -775,10 +783,7 @@ juvenile population. Data drawn from Bureau of Justice Statistics."))
 
     ### Rebecca's server info for tab 4
     states_plot <- reactive({
-      summary <- filter(data, Jurisdiction == "U.S.total" |
-                          Jurisdiction == "Federal" | Jurisdiction == "State")
-      states <- anti_join(data, summary) %>%
-        filter(states$year == input$year)
+      states <- filter(states, states$year == input$year)
       states_coor_2 <- map_data("state")
       colnames(states_coor_2)[colnames(states_coor_2) == "region"] <-
         "Jurisdiction"
@@ -840,6 +845,32 @@ juvenile population. Data drawn from Bureau of Justice Statistics."))
     })
     output$federal_plot <- renderPlot({
       federal_plot()
+    })
+    output$us_text <- renderText({"This section focuses on 
+    non-citizen population held in prison all over United States 
+    from 1998 to 2016.This data visualization is a bar chart 
+    comparing this population over the years. It is clear that 
+    it has a steady trend until there is a sudden drop in year 2013 
+    and it's gradually declining. In 2016, the population is back 
+    higher. "
+    })
+    output$federal_text <- renderText({"This section stresses on 
+    non-citizen population held in prison in federal cases from 1998 
+    to 2016. Shown above is another bar chart comparing this population 
+    over the years. It is interesting to draw contrast between this chart 
+    and the U.S. chart. Consisting roughly 30% of the U.S. total population
+    , it's also showing a steady trend over the years, but with a more 
+    obvious declination. It is also possible to deduce that approximately 
+    70% of the U.S. total are individual state cases."
+    })
+    output$states_text <- renderText({"This section has a bar chart 
+    and a map chart for addressing non-citizen population held in 
+    prison in individual states. We can clearly see that California
+    , Texas, Arizona and New York are the states that stand out in 
+    non-citizen prison population, which is expected considering 
+    they have higher non-citizen population. Overall the states 
+    non-citizen prison population is in accord with the trend of the 
+    U.S. total."
     })
   }
 )
