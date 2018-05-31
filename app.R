@@ -14,6 +14,8 @@ library(tools)
 
 # Matt's data for Tab 1 #
 
+# Load in prison data and get it into numeric and long format
+
 prison_total <- read.csv("data/final_imprison_total_csv.csv",
   stringsAsFactors = FALSE
 )
@@ -55,25 +57,12 @@ prison_rate_non_national <- filter(
     Jurisdiction != "U.S. total"
 )
 
-prison_total_point <- ggplot(data = prison_total_long) +
-  geom_point(aes(x = year, y = pop, color = Jurisdiction))
-
-prison_rate_point <- ggplot(data = prison_rate_long) +
-  geom_point(aes(x = year, y = pop, color = Jurisdiction))
-
-prison_rate_national_point <- ggplot(data = prison_rate_national) +
-  geom_point(aes(x = year, y = pop, color = Jurisdiction))
-
-prison_rate_non_national_point <- ggplot(data = prison_rate_non_national) +
-  geom_point(aes(x = year, y = pop, color = Jurisdiction))
+# filter prison data and load in map information 
 
 prison_total_national <- filter(
   prison_total_long,
   Jurisdiction == "U.S. total"
 )
-
-prison_total_national_point <- ggplot(data = prison_total_national) +
-  geom_point(aes(x = year, y = pop, color = Jurisdiction))
 
 state_map <- map_data("state")
 
@@ -110,6 +99,8 @@ prison_rate_map <- left_join(prison_rate_non_national,
   by = "region"
 )
 
+# load in expected WorldBank population data
+
 expect_rate <- c(
   773919, 874803, 942798, 951100, 959088, 966266,
   973505, 980346, 987659, 994892, 1001809
@@ -119,6 +110,8 @@ expect_years <- c(
   1990, 2000, 2008, 2009, 2010, 2011,
   2012, 2013, 2014, 2015, 2016
 )
+
+# filter and join expected data for population to national prison data
 
 expect_frame <- data.frame(expect_years, expect_rate)
 
@@ -138,12 +131,6 @@ expect_vs_national <- full_join(expect_frame,
 expect_vs_national$Jurisdiction[1:11] <- "Projected"
 
 expect_vs_national$pop[1:11] <- expect_rate
-
-rate_non_national_2000 <- filter(prison_rate_non_national, year == 2000) %>%
-  arrange(-pop)
-
-rate_non_national_2007 <- filter(prison_rate_non_national, year == 2007) %>%
-  summarise(mean = mean(pop))
 
 # Jevandre's data for tab 2
 # Manipulating and shaping data
@@ -255,7 +242,12 @@ shinyApp(
           ),
           p(
             "Data for the District of Columbia is only available up to 2000."
-          )
+          ), br(), p("Data taken from Prisoner total and Prison Rate data
+            tables from the Bureau of Justice Statistics and from
+                     the WorldBank World Development Indicators DataBank."),
+          br(), p("https://www.bjs.gov/index.cfm?ty=nps"),
+          br(), p("http://databank.worldbank.org/data/reports.aspx?source=
+                  2&series=SP.POP.TOTL#")
         ),
 
         mainPanel(
@@ -273,7 +265,7 @@ shinyApp(
             tabPanel(
               "Prison Rates by State",
               h4(
-                "Prison Rates by State in ",
+                "Prison Rates per 100,000 Residents by State in ",
                 textOutput("curr2", inline = T)
               ),
               plotOutput("map2"),
@@ -367,7 +359,18 @@ on Drugs. The drop from 2008 onwards similarly corresponds to changes in the
                       our initial question is false; there are clearly
                       other reasons for changes in incarceration other
                       than population growth, most notably contemporary
-                      events and government and state initiatives.")
+                      events and government and state initiatives."),
+              br(), p("Sources consulted:"),
+              br(), p("https://en.wikipedia.org/wiki/United_States_
+                      incarceration_rate"),
+              br(), p("https://www.sentencingproject.org/publications/u-s-
+                      prison-population-trends-1999-2014-broad-variation-among
+                      -states-in-recent-years/"),
+              br(), p("https://www.pbs.org/newshour/nation/new-york-city-
+                      defied-national-trends-cut-incarceration-rate-half-
+                      study-finds"),
+              br(), p("http://www.ppic.org/publication/californias-changing-
+                      prison-population/")
             )
           )
         )
@@ -452,6 +455,8 @@ on Drugs. The drop from 2008 onwards similarly corresponds to changes in the
     # Matt's server info for Tab 1 #
 
     output$map1 <- renderPlot({
+      
+      # Creates US prison population map for the selected year
       prison_total_filter_map <- filter(prison_state_map, year == input$button)
 
       prison_map_total_year <- ggplot(data = prison_total_filter_map) +
@@ -469,14 +474,15 @@ on Drugs. The drop from 2008 onwards similarly corresponds to changes in the
           panel.border = element_blank(),
           panel.grid.minor = element_blank(),
           panel.grid.major = element_blank()
-        )
+        ) + labs(fill = "Prison population")
 
       return(prison_map_total_year)
     },
     width = 700,
     height = 350
     )
-
+    
+    # Creates US prison rate map for the selected year
     output$map2 <- renderPlot({
       prison_rate_filter_map <- filter(prison_rate_map, year == input$button)
 
@@ -494,7 +500,7 @@ on Drugs. The drop from 2008 onwards similarly corresponds to changes in the
           panel.border = element_blank(),
           panel.grid.minor = element_blank(),
           panel.grid.major = element_blank()
-        )
+        ) + labs(fill = "Prisoner rate")
 
       return(prison_map_rate_year)
     },
@@ -502,6 +508,7 @@ on Drugs. The drop from 2008 onwards similarly corresponds to changes in the
     height = 350
     )
 
+    # Creates US prison population scatter plot for the selected states
     output$chart1 <- renderPlotly({
       prison_total_non_national_filter <- filter(
         prison_total_non_national,
@@ -523,7 +530,8 @@ on Drugs. The drop from 2008 onwards similarly corresponds to changes in the
 
       return(prison_total_national_point)
     })
-
+    
+    # Creates US prison rate scatter plot for the selected states
     output$chart2 <- renderPlotly({
       prison_rate_national_filter <-
         filter(prison_rate_long, Jurisdiction %in% input$checks)
@@ -544,6 +552,8 @@ on Drugs. The drop from 2008 onwards similarly corresponds to changes in the
       return(prison_rate_national_point)
     })
 
+    # Creates US prison population scatter plot for the national total data,
+    # as well as a line for the projected population data
     output$chart3 <- renderPlotly({
       prison_total_national_point <- ggplotly(ggplot(data = prison_total_national) +
         geom_point(aes(x = year, y = pop)) +
@@ -559,10 +569,11 @@ on Drugs. The drop from 2008 onwards similarly corresponds to changes in the
 
       return(prison_total_national_point)
     })
-
+    
+    # Creates US prison rate scatter plot for the national total data
     output$chart4 <- renderPlotly({
       prison_rate_national_point <- ggplotly(ggplot(data = prison_rate_national) +
-        geom_point(aes(x = year, y = pop, color = Jurisdiction)) + labs(
+        geom_point(aes(x = year, y = pop)) + labs(
           title = "National Prison Rate, 1978-2016",
           x = "Year",
           y = "Prison Population"
@@ -575,6 +586,8 @@ on Drugs. The drop from 2008 onwards similarly corresponds to changes in the
     })
 
 
+    # returns the selected year for the prison population
+    # and prison rates
     output$curr1 <- renderText({
       return(input$button)
     })
@@ -604,7 +617,7 @@ on Drugs. The drop from 2008 onwards similarly corresponds to changes in the
           panel.border = element_blank(),
           panel.grid.minor = element_blank(),
           panel.grid.major = element_blank()
-        )
+        )  + labs(fill = "Measured variable")
       return(map_plot)
     },
     width = 700,
