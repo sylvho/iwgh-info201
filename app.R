@@ -7,6 +7,7 @@ library(plotly)
 library(readxl)
 library(RColorBrewer)
 library(tools)
+library(maps)
 
 # install.packages("plotly")
 # install.packages("shinythemes")
@@ -16,11 +17,11 @@ library(tools)
 
 # Load in prison data and get it into numeric and long format
 
-prison_total <- read.csv("data/final_imprison_total_csv.csv",
+prison_total <- read.csv("./data/final_imprison_total_csv.csv",
   stringsAsFactors = FALSE
 )
 
-prison_rate <- read.csv("data/final_imprison_rate_csv.csv",
+prison_rate <- read.csv("./data/final_imprison_rate_csv.csv",
   stringsAsFactors = FALSE
 )
 
@@ -149,13 +150,13 @@ map_data <- left_join(state_map, capacities,
 
 # Sylvia's data for Tab 3 #
 
-underage_prison_data <- read.csv("data/QT_less than 18 year olds_total.csv",
+underage_prison_data <- read.csv("./data/QT_less_than_18_year_olds_total.csv",
   stringsAsFactors = FALSE
 )
-female_prison_data <- read.csv("data/QT_less than 18 year olds_female.csv",
+female_prison_data <- read.csv("./data/QT_less_than_18_year_olds_female.csv",
   stringsAsFactors = FALSE
 )
-male_prison_data <- read.csv("data/QT_less than 18 year olds_male.csv",
+male_prison_data <- read.csv("./data/QT_less_than_18_year_olds_male.csv",
   stringsAsFactors = FALSE
 )
 
@@ -203,7 +204,7 @@ long_underage_data <- left_join(long_underage_data, long_male_data)
 year_range <- range(long_underage_data$year)
 
 # Rebecca's data for tab 4
-data <- read_xlsx("data/QT_noncitizens_total.xlsx", sheet = 1)
+data <- read_xlsx("./data/QT_noncitizens_total.xlsx", sheet = 1)
 summary <- filter(data, Jurisdiction == "U.S.total" | Jurisdiction == "Federal" | Jurisdiction == "State")
 states <- anti_join(data, summary)
 
